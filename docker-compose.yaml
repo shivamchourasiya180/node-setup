@@ -1,0 +1,35 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:15
+    container_name: test-server-postgres
+    restart: unless-stopped
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ${POSTGRES_DATA_VOLUME}:/var/lib/postgresql/data
+  test-server:
+    image: test-server
+    build:
+      context: .
+      target: test-server
+      args:
+        - PORT:${PORT}
+    container_name: test-server
+    restart: unless-stopped
+    ports:
+      - ${PORT}:${PORT}
+    # Uncomment this to disable run application on standalone mode
+    # depends_on:
+    #   - postgres
+    #   - redis
+    volumes:
+      - .env:/test-server/.env:ro
+      - ${STORAGE_DATA_VOLUME}:/test-server/${STORAGE_DIR}
+      - ${LOG_VOLUME}:/test-server/${LOG_DIR}
+networks:
+  default:
+    name: test-server
